@@ -1,6 +1,8 @@
 org 0x7c00  ; The BIOS loads the boot sector to memory address
 
-msg db "Os", 0
+jmp start
+
+msg db "OSI Model", 0
 msg_len equ $-msg
 
 start:
