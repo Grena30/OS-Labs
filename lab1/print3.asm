@@ -6,4 +6,6 @@ start:
     mov bl, 12   ; color attribute 
     int 10h      ; Call BIOS video interrupt
 
-
+; Padding to ensure the bootloader is 512 bytes
+times 510-($-$$) db 0
+dw 0xaa55 ; Boot signature

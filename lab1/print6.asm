@@ -16,3 +16,7 @@ start:
 
     ; Display the string
     int 10h
+    
+; Padding to ensure the bootloader is 512 bytes
+times 510-($-$$) db 0
+dw 0xaa55 ; Boot signature
