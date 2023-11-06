@@ -2,7 +2,7 @@ org 0x7c00  ; The BIOS loads the boot sector to memory address
 
 jmp start
 
-msg db "Virtual Box Floppy",
+msg db "Virtual Box Floppy", 0
 msg_len equ $-msg
 
 start:

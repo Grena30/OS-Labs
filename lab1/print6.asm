@@ -9,8 +9,8 @@ start:
     mov ah, 13h  	; BIOS video function to write a string
     mov al, 0    	; display the entire string
     mov bl, 2    	; color attribute
-    mov dh, 0    	; row
-    mov dl, 0    	; column
+    mov dh, 12    	; row
+    mov dl, 40    	; column
     mov cx, msg_len  	; length of the message
     mov bp, msg  	; points to the message
 
