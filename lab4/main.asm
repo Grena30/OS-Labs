@@ -1,4 +1,4 @@
-org 1000h          ; Set origin address to 1000h
+org 5000h          ; Set origin address to 3000h
 bits 16            ; Set the code to 16-bit mode
 
 jmp start          ; Jump to the start label
@@ -26,10 +26,35 @@ read_key:
     cmp ah, 0x1c      ; Compare with Enter key press
     je input_enter    ; Jump to label if Enter is pressed
 
+    cmp al, 0x3
+    je bootloader
+
     cmp al, 0x20      ; Compare with ASCII value less than space
     jge echo_char     ; Jump to label if printable character
 
     jmp read_key      ; Jump back to read more keyboard input
+
+bootloader:
+    mov al, 0x3
+    mov ah, 0
+    int 0x10
+
+    mov ah, 00
+    int 13h
+
+    mov ax, 0000h
+    mov es, ax
+    mov bx, 7d00h
+
+    mov ah, 02h
+    mov al, 2
+    mov ch, 0
+    mov cl, 2
+    mov dh, 0
+    mov dl, 0
+    int 13h
+
+    jmp 0000h:7d00h
 
 input_backspace:
     cmp si, buffer    ; Compare buffer address with SI
@@ -123,6 +148,7 @@ print_echo:
     pop bp
     pop si
 
+    mov word [index], 0
     mov bh, 0                   ; Video page number.
     mov ax, 0
     mov es, ax                  ; ES:BP is the pointer to the buffer
@@ -195,7 +221,7 @@ echo_char:
     inc word [index]
     jmp read_key
 
-.add_char:
+    .add_char:
     mov [si], al
     inc si
     inc word [index]

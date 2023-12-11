@@ -5,17 +5,17 @@ int 13h
 
 mov ax, 0000h
 mov es, ax
-mov bx, 1000h
+mov bx, 7d00h
 
 mov ah, 02h
-mov al, 3  
+mov al, 2
 mov ch, 0
 mov cl, 2
 mov dh, 0
 mov dl, 0
 int 13h
 
-jmp 0000h:1000h
+jmp 0000h:7d00h
 
 times 510-($-$$) db 0
 dw 0AA55h
