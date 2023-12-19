@@ -1,17 +1,13 @@
-org 5000h          ; Set origin address to 3000h
-bits 16            ; Set the code to 16-bit mode
+org 0x8000									; Offset - Specific place where Kernel's supposed to begin
+dw 0x1234
 
-jmp start          ; Jump to the start label
+jmp start
 
-%include "print_string.asm"  ; Include an external assembly file for string printing
 
 start:
     mov al, 0x3      ; Set video mode to 3 (text mode)
     mov ah, 0
     int 0x10          ; Call BIOS video interrupt
-
-    mov si, input_prompt  ; Load the address of the input prompt string
-    call print_string_si ; Call a function to print the input prompt
 
     mov bx, 0         ; Clear register BX
     mov si, buffer    ; Load the address of the buffer for user input
@@ -35,33 +31,14 @@ read_key:
     jmp read_key      ; Jump back to read more keyboard input
 
 bootloader:
-    mov al, 0x3
-    mov ah, 0
-    int 0x10
-
-    mov ah, 00
-    int 13h
-
-    mov ax, 0000h
-    mov es, ax
-    mov bx, 7d00h
-
-    mov ah, 02h
-    mov al, 2
-    mov ch, 0
-    mov cl, 2
-    mov dh, 0
-    mov dl, 0
-    int 13h
-
-    jmp 0000h:7d00h
+    jmp 0xffff:0000							; Jump to reset vector location (FFFF0)
+    ret
 
 input_backspace:
     cmp si, buffer    ; Compare buffer address with SI
     je read_key       ; If buffer is empty, do nothing
     dec si            ; Decrement SI to remove the last character
     mov byte [si], 0  ; Set the removed character to null
-    dec word [index]  ; Decrement the index of the buffer
 
     mov ah, 0x03      ; Set video function to get cursor position
     mov bh, 0
@@ -114,21 +91,27 @@ input_enter:
     mov dh, 0x17      ; Move cursor 1 line above the target
 
 print_echo:
+    mov cx, si
+
+    push dx
     push si
     push bp
 
     mov bp, reversed_buffer
     mov si, buffer
-    mov cx, [index]
+    mov dx, cx
 
     .loop:                  ; Loop until the end of the buffer
-    cmp cx, 1
-    je .reverse_buffer
+    cmp dx, 1
+    je .exit_loop
 
     inc si
-    dec cx
+    dec dx
 
     jmp .loop
+
+    .exit_loop:
+    mov dx, cx
 
     .reverse_buffer:         ; Add to the reversed_buffer starting from the end
     mov al, [si]
@@ -137,18 +120,18 @@ print_echo:
     inc bp
     dec si
 
-    cmp word [index], 0
+    cmp dx, 0
     je .print_buffer
 
-    dec word [index]
+    dec dx
 
     jmp .reverse_buffer
 
     .print_buffer:
     pop bp
     pop si
+    pop dx
 
-    mov word [index], 0
     mov bh, 0                   ; Video page number.
     mov ax, 0
     mov es, ax                  ; ES:BP is the pointer to the buffer
@@ -203,8 +186,8 @@ echo_char:
     cmp al, 0x7f                 ; Compare with Delete key
     jge read_key                 ; If greater than or equal, jump to read_key
 
-    cmp si, buffer + 256         ; Compare buffer address with SI + 256
-    je read_key                  ; If at max size (256), ignore further inputs
+    cmp si, buffer + 255         ; Compare buffer address with SI + 255
+    je read_key                  ; If at max size (255), ignore further inputs
 
     mov ah, 0xe                  ; Set video function to echo characters to the screen
     int 10h                      ; Call BIOS video interrupt
@@ -218,16 +201,16 @@ echo_char:
     sub al, 0x20                 ; If between 'a' and 'z' change it to uppercase
     mov [si], al
     inc si
-    inc word [index]
     jmp read_key
 
     .add_char:
     mov [si], al
     inc si
-    inc word [index]
     jmp read_key
 
-buffer: times 256 db 0x0
-reversed_buffer: times 256 db 0x0
-input_prompt: db "Enter a string: ", 0x0d, 0xa, 0
-index: dw 0
+align 512, db 0
+main_end:
+    buffer: times 255 db 0x0
+    reversed_buffer: times 255 db 0x0
+times 510 - ($ - main_end) db 0
+dw 0x4321
