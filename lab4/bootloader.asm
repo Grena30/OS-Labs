@@ -6,15 +6,15 @@ int 0x10
 
 mov ax, 0x1300
 mov bx, 0x0007
-mov cx, 0x0010									; String length - 21
-mov dx, 0x0000									; Row 4, Col 32
+mov cx, 0x0010									; String length - 16
+mov dx, 0x0000									; Row 0, Col 0
 xor bp, bp
 mov es, bp
 mov bp, boot_msg
 int 0x10
 
 mov cl, 0x11									; Length - 17
-mov dx, 0x0100									; Row 10, Col 35
+mov dx, 0x0100									; Row 1, Col 0
 mov bp, addr_prompt
 int 0x10
 
